@@ -23,11 +23,11 @@
       "versions": [
         {
           "version": "0.3.1",
-          "publishTimestamp": 1793344114,
+          "publishTimestamp": 1793432142,
           "source": {
             "type": "git",
             "url": "https://github.com/UniversalCAI/dsh-account-model-hub",
-            "commit": "0a54cc9ef3f157e414c945e6532c391e8357bf74"
+            "commit": "585ac2112cee2f15aafa04e3198ffc6403bac0a9"
           }
         }
       ]
