@@ -1,0 +1,36 @@
+{
+  "format": 1,
+  "title": {
+    "en": "Universal CAI DSH plugins",
+    "zh": "Universal CAI DSH 插件"
+  },
+  "plugins": [
+    {
+      "name": "dsh-account-model-hub",
+      "title": {
+        "en": "Account Hub",
+        "zh": "账号与模型中心"
+      },
+      "description": {
+        "en": "Manage Codex, Claude, Grok, Copilot, Antigravity and OpenCode Go accounts, quotas and pools, with model visibility, reasoning defaults, remaining-quota display and local credential controls.",
+        "zh": "管理 Codex、Claude、Grok、Copilot、Antigravity 与 OpenCode Go 账号、额度和账号池，并提供模型可见性、默认推理强度、剩余额度显示与本机凭据控制。"
+      },
+      "author": "UniversalCAI",
+      "homepage": "https://github.com/UniversalCAI/dsh-account-model-hub#readme",
+      "repository": {
+        "url": "https://github.com/UniversalCAI/dsh-account-model-hub"
+      },
+      "versions": [
+        {
+          "version": "0.3.1",
+          "publishTimestamp": 1793344114,
+          "source": {
+            "type": "git",
+            "url": "https://github.com/UniversalCAI/dsh-account-model-hub",
+            "commit": "0a54cc9ef3f157e414c945e6532c391e8357bf74"
+          }
+        }
+      ]
+    }
+  ]
+}

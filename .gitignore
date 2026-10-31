@@ -1,0 +1,14 @@
+node_modules/
+lib/
+lib-test/
+*.tgz
+overlay.yml
+.DS_Store
+
+build.log
+install.log
+test.log
+single-test.log
+
+docs/images/
+screenshots.json

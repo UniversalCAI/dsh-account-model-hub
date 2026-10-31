@@ -1,0 +1,42 @@
+# NOTICE — provenance and third-party references
+
+`dsh-account-hub` is a **fork** of
+[`dsh-plugin-subscriptions`](https://github.com/V1ki/dsh-plugin-subscriptions)
+(v0.9.10, MIT) by **V1ki** and its contributors. The upstream copyright and
+MIT license are preserved in `LICENSE`. All upstream subscription providers,
+their OAuth flows, translation layers, account pool, model catalog store,
+settings page and tests remain under that license; this fork adds the account
+and quota work described in `docs/opencode-go.md` and the repository history.
+
+## Design and protocol references
+
+The OpenCode Go integration was designed from the following public projects
+and data. No unmodified source files were copied from them; protocol shapes,
+endpoint layout and operational policy were re-implemented for this fork:
+
+- [`Duskriver/dsh-opencode-go`](https://github.com/Duskriver/dsh-opencode-go)
+  (MIT) — OpenCode Go provider identity, `x-opencode-session` routing header,
+  multi-protocol gateway layout (`/openai/v1`, `/anthropic`), 5h/weekly/monthly
+  usage contract and account failover semantics.
+- [`grikomsn/pi-provider-opencode-console`](https://github.com/grikomsn/pi-provider-opencode-console)
+  (MIT) — OpenCode Console/Go OAuth device-code reference (future option;
+  not enabled by default in this fork).
+- [`Aa728848/dsh-chatgpt-subscription`](https://github.com/Aa728848/dsh-chatgpt-subscription)
+  (MIT) — multi-provider subscription line layout, shared account-pool kernel,
+  "adopted snapshot is never refreshed" import policy, DPAPI storage guidance.
+- [`franksong2702/dsh-codex-connect`](https://github.com/franksong2702/dsh-codex-connect)
+  (Apache-2.0) — account-document migration/validation, quota wait/rotation
+  state machines, masked account labels.
+- `@earendil-works/pi-ai` provider data (`opencode-go.json`, models.dev-derived)
+  — the static model catalog snapshot in `data/opencode-go.json`, regenerated
+  into `src/providers/opencode-models.ts`.
+- `dsh-cost-meter` documentation — quota endpoint/source inventory used only as
+  a reference; this fork does not ship a billing ledger.
+
+## Trademarks
+
+OpenCode, OpenCode Go, ChatGPT, OpenAI, Codex, Claude, Anthropic, Grok, xAI,
+GitHub Copilot, Google Antigravity and DeepSeek Harness are trademarks of their
+respective owners. This project is not affiliated with or endorsed by any of
+them. Subscription OAuth reuse is subject to each vendor's terms; see the
+individual provider sections in the upstream README.
