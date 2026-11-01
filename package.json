@@ -1,6 +1,6 @@
 {
   "name": "dsh-account-model-hub",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Account & Model Hub for DeepSeek Harness: manage Codex, Claude, Grok, Copilot, Antigravity and OpenCode Go accounts, quotas and pools, plus model visibility, default reasoning effort, display names, context and provider tools.",
   "license": "MIT",
   "repository": {

@@ -525,6 +525,7 @@ export function SubscriptionsSection(props: SubscriptionsSectionProps) {
   const [logoutAllBusy, setLogoutAllBusy] = useState(false)
   const [logoutAllError, setLogoutAllError] = useState('')
   const [credentialNotice, setCredentialNotice] = useState('')
+  const [securityOpen, setSecurityOpen] = useState(false)
   const logoutAllDialogRef = useRef<HTMLDialogElement>(null)
   useEffect(() => {
     if (resetConfirmation) resetDialogRef.current?.showModal()
@@ -1223,19 +1224,23 @@ export function SubscriptionsSection(props: SubscriptionsSectionProps) {
           </div>
         )
       })}
-      <details style={{ ...styles.card, marginTop: 4 }}>
-        <summary style={{ cursor: 'pointer', fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' }}>
-          {t('credentialSecurityTitle')}
-        </summary>
-        <p style={styles.statusLine}>{t('credentialSecurityHint')}</p>
-        {credentialNotice !== '' && <p style={styles.statusLine}>{credentialNotice}</p>}
-        <div style={styles.actions}>
-          <button type="button" disabled={logoutAllBusy}
-            onClick={() => { setLogoutAllError(''); setCredentialNotice(''); setLogoutAllOpen(true) }}>
-            {t('logoutAll')}
-          </button>
-        </div>
-      </details>
+      <div style={{ ...styles.card, marginTop: 4 }}>
+        <button type="button" onClick={() => setSecurityOpen(value => !value)}
+          style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left',
+            fontSize: 12, color: 'var(--dsw-alias-label-tertiary)' }}>
+          {t('credentialSecurityTitle')} {securityOpen ? '▾' : '▸'}
+        </button>
+        {securityOpen && <>
+          <p style={styles.statusLine}>{t('credentialSecurityHint')}</p>
+          {credentialNotice !== '' && <p style={styles.statusLine}>{credentialNotice}</p>}
+          <div style={styles.actions}>
+            <button type="button" disabled={logoutAllBusy}
+              onClick={() => { setLogoutAllError(''); setCredentialNotice(''); setLogoutAllOpen(true) }}>
+              {t('logoutAll')}
+            </button>
+          </div>
+        </>}
+      </div>
       </>}
       {view === 'models' && (
         <div style={{ display: 'grid', gap: 10 }}>
@@ -1289,7 +1294,7 @@ export function SubscriptionsSection(props: SubscriptionsSectionProps) {
         aria-labelledby="subscriptions-logout-all-title"
         onCancel={event => { if (logoutAllBusy) event.preventDefault() }}
         onClose={() => setLogoutAllOpen(false)}
-        style={{ ...styles.modal, margin: 'auto', color: 'var(--dsw-alias-label-primary)' }}>
+        style={{ ...styles.modal, display: logoutAllOpen ? 'flex' : 'none', margin: 'auto', color: 'var(--dsw-alias-label-primary)' }}>
         <h3 id="subscriptions-logout-all-title" style={{ ...styles.modalTitle, margin: 0 }}>{t('logoutAllTitle')}</h3>
         <p style={{ ...styles.statusLine, margin: '4px 0' }}>{t('logoutAllConfirm')}</p>
         {logoutAllError !== '' && <p style={styles.errorLine}>{logoutAllError}</p>}

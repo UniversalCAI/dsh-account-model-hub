@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 0.3.2 — 2026-11-01
+
+### Fixed
+
+- The logout-all confirmation dialog was mounted with its modal CSS `display:flex` even while closed, so its content appeared on opening the settings page. Closed dialogs now use `display:none`.
+- The local-credential section is now an explicitly collapsed toggle at the bottom of the Accounts view; it renders no erase controls until opened.
+
 ## 0.3.1 — 2026-10-31
 
 ### Security

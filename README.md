@@ -1,6 +1,6 @@
 # dsh-account-model-hub (fork of dsh-plugin-subscriptions) [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
 
-> 兼容 DSH `0.2.1-rc.5`；当前插件版本 `0.3.1`。
+> 兼容 DSH `0.2.1-rc.5`；当前插件版本 `0.3.2`。
 
 English | [中文](README.zh.md)
 
@@ -20,7 +20,7 @@ dsh plugin --profile web add github:UniversalCAI/dsh-account-model-hub
 Market index source for the DSH Discover tab:
 
 ```text
-https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.1/market/index.json
+https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.2/market/index.json
 ```
 
 See [PUBLISHING.md](PUBLISHING.md) for the full publishing path (npm is optional for the self-hosted index; the community catalog needs a separate entry).
@@ -371,7 +371,7 @@ git tag v0.2.1 && git push github main v0.2.1
 Then update `market/index.json` with the new version and source commit, commit and push it. The index is available from:
 
 ```text
-https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.1/market/index.json
+https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.2/market/index.json
 ```
 
 If you later publish to npm, update the index version's `source` to `{ "type": "npm" }` and keep the package name/version in sync.
