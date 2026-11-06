@@ -50,6 +50,14 @@ export type PoolFailureAction =
  */
 const MODEL_SCOPED_QUOTA_PROVIDERS: ReadonlySet<ProviderId> = new Set(['claude', 'antigravity'])
 
+/** Load-shedding wording the Responses/Codex backends use (see translate/responses.ts). */
+const OVERLOAD_MESSAGE = /server_is_overloaded|server_overloaded|service_unavailable|slow_down|flex_unavailable|queue_full|overloaded|at capacity/i
+
+/** Whether a failure message names transient backend load shedding. */
+function isOverloadMessage(message: string): boolean {
+  return OVERLOAD_MESSAGE.test(message)
+}
+
 /** The `retry-after` an adapter propagated through `httpLlmError`, when any. */
 function retryAfterMs(error: LlmError): number | undefined {
   return error.failure.providerRetryAfterMs
@@ -70,6 +78,20 @@ function retryAfterMs(error: LlmError): number | undefined {
  */
 export function classifyPoolFailure(error: unknown, provider: ProviderId): PoolFailureAction {
   if (!(error instanceof LlmError)) return { action: 'throw' }
+  // Backend load shedding ("Selected model is at capacity", server_is_overloaded,
+  // slow_down) says nothing about the account: the next attempt, on the same or
+  // another account, is usually admitted within seconds. Parking the member for
+  // a minute turned a one-account pool into "earliest member recovers in 1m00s"
+  // and a forced 60 s wait per overload. Switch without a health record and
+  // let the retry plugin's short exponential backoff handle it — unless the
+  // provider disclosed its own wait, which stays authoritative.
+  if (
+    (error.code === 'SERVER' || error.code === 'RATE_LIMIT')
+    && retryAfterMs(error) === undefined
+    && isOverloadMessage(error.message)
+  ) {
+    return { action: 'switch' }
+  }
   switch (error.code) {
     case QUOTA_EXCEEDED_CODE:
     case 'RATE_LIMIT':

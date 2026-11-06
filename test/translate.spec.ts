@@ -432,6 +432,35 @@ test('Responses translator: response.failed maps context overflow and quota', ()
   )
 })
 
+test('Responses translator: in-stream Codex overload (nested error) is a retryable SERVER naming the code', () => {
+  const overload = new ResponsesStreamTranslator()
+  assert.throws(
+    () => overload.push({
+      type: 'error',
+      error: {
+        type: 'service_unavailable_error',
+        code: 'server_is_overloaded',
+        message: 'Our servers are currently overloaded. Please try again later.',
+      },
+    }),
+    (error: unknown) => error instanceof LlmError
+      && error.code === 'SERVER'
+      && /server_is_overloaded/.test(error.message)
+      && !/the provider reported a failed response/.test(error.message),
+  )
+  const failed = new ResponsesStreamTranslator()
+  assert.throws(
+    () => failed.push({ type: 'response.failed', response: { error: { code: 'slow_down', message: 'Selected model is at capacity. Please try a different model.' } } }),
+    (error: unknown) => error instanceof LlmError && error.code === 'SERVER' && /slow_down/.test(error.message),
+  )
+  // A nested non-overload error keeps its own classification.
+  const quota = new ResponsesStreamTranslator()
+  assert.throws(
+    () => quota.push({ type: 'error', error: { code: 'insufficient_quota', message: 'out of credits' } }),
+    (error: unknown) => error instanceof LlmError && error.code === 'QUOTA',
+  )
+})
+
 test('toAnthropicMessages: merge, tool_use input parsing, tool_result', () => {
   const messages = toAnthropicMessages([
     message('system', [{ type: 'text', text: 'system text' }]),

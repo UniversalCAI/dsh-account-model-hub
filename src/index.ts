@@ -20,6 +20,7 @@ import type {
 // Type-only: activates the `ctx.tools` Context merge for the inject block.
 import type {} from '@deepseek-ai/dsh-tools'
 import type {} from '@deepseek-ai/dsh-agent'
+import type { SessionId } from '@deepseek-ai/dsh-session/types'
 // Type-only: activates the `ctx.web` Context merge for optional registration.
 import type {} from '@deepseek-ai/dsh-web'
 import type { AttachmentStore, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
@@ -962,7 +963,7 @@ export function apply(ctx: Context, config: Config): void {
     if (explicit !== undefined) return explicit
     // The request itself carries no subagent flag. The live registry exposes
     // durable origin metadata for spawn, fork, and resumed subagents alike.
-    const agent = ctx.get('agents')?.get(sessionId as NonNullable<GenerateOptions['sessionId']>)
+    const agent = ctx.get('agents')?.get(sessionId as SessionId)
     if (model !== undefined && agent?.session.header.origin === 'subagent') {
       return preferences.subagentSpeed(parseAccountModelId(model)?.model ?? model)
     }

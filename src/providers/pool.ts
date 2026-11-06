@@ -270,7 +270,19 @@ export class PoolAdapter extends LlmAdapter {
     if (candidates.length === 0) throw this.exhausted(options.model, members)
     let lastFailure: MemberFailure | undefined
     let tried = 0
-    for (const member of candidates) {
+    // A 200-SSE overload is a request-level capacity blip, not a failed
+    // account. Give the same member a few fresh pre-output attempts before
+    // declaring a one-member pool exhausted. Non-overload failures are still
+    // attempted only once (the `skipped` set collapses the duplicate slots).
+    const retryCandidates = candidates.flatMap(member => [member, member, member])
+    const skipped = new Set<string>()
+    const overloadFailure = (error: unknown): boolean =>
+      error instanceof LlmError
+      && error.code === 'SERVER'
+      && /server_is_overloaded|server_overloaded|service_unavailable|slow_down|overloaded|at capacity/i.test(error.message)
+    for (const member of retryCandidates) {
+      const memberId = memberKey(member.provider, member.account, member.model)
+      if (skipped.has(memberId)) continue
       options.signal?.throwIfAborted()
       const adapter = this.options.adapters[member.provider]
       if (adapter === undefined) continue
@@ -299,6 +311,14 @@ export class PoolAdapter extends LlmAdapter {
         try { await iterator.return?.() } catch { /* preserve the attempt failure */ }
         options.signal?.throwIfAborted()
         const classification = classifyPoolFailure(error, member.provider)
+        if (overloadFailure(error)) {
+          // Keep this member eligible for the next duplicate attempt. The
+          // backend rejected capacity, not the account.
+          lastFailure = { member, error }
+          this.options.onWarn(`pool "${options.model}": ${memberLabel(member)} overloaded; retrying same member`)
+          continue
+        }
+        skipped.add(memberId)
         if (classification.action === 'throw') throw error
         if ('cooldownMs' in classification) {
           this.options.health.markUnavailable(

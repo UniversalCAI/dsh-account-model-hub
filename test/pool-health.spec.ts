@@ -86,6 +86,21 @@ test('classifyPoolFailure: transient server failures cool the member briefly', (
   }
 })
 
+test('classifyPoolFailure: backend load shedding switches without parking the member', () => {
+  for (const [message, code] of [
+    ['server_is_overloaded: Our servers are currently overloaded.', 'SERVER'],
+    ['slow_down: Selected model is at capacity. Please try a different model.', 'SERVER'],
+    ['codex API error (HTTP 429): {"error":{"code":"server_is_overloaded"}}', 'RATE_LIMIT'],
+  ] as const) {
+    assert.deepEqual(classifyPoolFailure(new LlmError(message, code), 'codex'), { action: 'switch' })
+  }
+  // A disclosed wait stays authoritative even for overload wording.
+  assert.deepEqual(
+    classifyPoolFailure(new LlmError('server_is_overloaded', 'SERVER', { providerRetryAfterMs: 5_000 }), 'codex'),
+    { action: 'switch', cooldownMs: TRANSIENT_COOLDOWN_MS, reason: 'SERVER', scope: 'member' },
+  )
+})
+
 test('classifyPoolFailure: transport failures switch without a health record', () => {
   assert.deepEqual(classifyPoolFailure(new LlmError('dns', 'TRANSPORT'), 'codex'), { action: 'switch' })
 })

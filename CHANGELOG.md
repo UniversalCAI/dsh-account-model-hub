@@ -1,5 +1,17 @@
 ﻿# Changelog
 
+## 0.3.3 — 2026-11-06
+
+### Compatibility
+
+- Updated peer ranges and development dependencies for DSH `0.2.2-rc.1` (Cordis `4.1`, Schemastery `3.19`).
+- Adapted the session-identity cast and auxiliary request-purpose typing to the new DSH interfaces.
+- Added the client UI transitive test dependencies required by DSH 0.2.2's published packages.
+
+### Fixed
+
+- Backend load shedding (`server_is_overloaded`, `slow_down`, `at capacity`) now switches pool members without parking them for a full cooldown; in-stream nested Codex error events are classified as retryable SERVER failures.
+
 ## 0.3.2 — 2026-11-01
 
 ### Fixed

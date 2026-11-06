@@ -233,6 +233,24 @@ export interface ResponsesStreamEvent {
   }
   code?: string
   message?: string
+  /**
+   * Nested failure of a bare `error` event. The Codex backend sheds load this
+   * way inside an HTTP 200 stream:
+   * `{"type":"error","error":{"type":"service_unavailable_error","code":"server_is_overloaded",...}}`.
+   */
+  error?: { code?: string; message?: string; type?: string }
+}
+
+/**
+ * Codes/types the Responses backends use for transient load shedding
+ * ("Selected model is at capacity"): retryable, and saying nothing about
+ * the account's health.
+ */
+const OVERLOAD_PATTERN = /server_is_overloaded|server_overloaded|service_unavailable|slow_down|flex_unavailable|queue_full|overloaded|at capacity/i
+
+/** Whether a failure code/message names transient backend load shedding. */
+export function isOverloadFailure(text: string | undefined): boolean {
+  return text !== undefined && OVERLOAD_PATTERN.test(text)
 }
 
 /** Responses `usage` object shape. */
@@ -264,11 +282,18 @@ export function mapResponsesUsage(usage: ResponsesUsage): TokenUsage {
  * Classify a Responses failure payload into a thrown LlmError.
  * @param code - provider error code, when present.
  * @param message - provider error message, when present.
+ * @param type - provider error type, when present (bare `error` events).
  * @returns the mapped error (context overflow, quota, otherwise SERVER).
  */
-export function responsesFailure(code: string | undefined, message: string | undefined): LlmError {
+export function responsesFailure(code: string | undefined, message: string | undefined, type?: string): LlmError {
+  const detail = `${code ?? ''} ${type ?? ''} ${message ?? ''}`
+  if (isOverloadFailure(detail)) {
+    // Keep the machine-readable code in the message: the pool classifier
+    // reads it to skip the member cooldown for load shedding.
+    const label = code ?? type ?? 'server_is_overloaded'
+    return new LlmError(`${label}: ${message ?? 'the provider is overloaded (selected model is at capacity)'}`, 'SERVER')
+  }
   const text = message ?? code ?? 'the provider reported a failed response'
-  const detail = `${code ?? ''} ${message ?? ''}`
   if (code === 'context_window_exceeded' || isContextWindowExceededError(detail)) {
     return new LlmError(text, CONTEXT_WINDOW_EXCEEDED_CODE)
   }
@@ -483,7 +508,11 @@ export class ResponsesStreamTranslator {
             ?? `the provider reported an incomplete response (${event.response?.incomplete_details?.reason ?? 'unknown reason'})`,
         )
       case 'error':
-        throw responsesFailure(event.code, event.message)
+        throw responsesFailure(
+          event.error?.code ?? event.code,
+          event.error?.message ?? event.message,
+          event.error?.type,
+        )
       default:
         // response.created, response.in_progress, content_part events, etc.: no chunks.
         return chunks
