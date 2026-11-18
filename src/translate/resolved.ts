@@ -177,11 +177,11 @@ export async function resolveImages(
     throw new LlmError(
       'dsh-account-model-hub: the request carries an image but no attachments service is mounted; '
       + 'image input requires the harness attachment store',
-      'UNSUPPORTED',
+      'UNSUPPORTED_CONTENT',
     )
   }
   const readForRequest = async (ref: ImageAttachmentRef) => {
-    if (attachments === undefined) throw new LlmError('No attachment service for retained image', 'UNSUPPORTED')
+    if (attachments === undefined) throw new LlmError('No attachment service for retained image', 'UNSUPPORTED_CONTENT')
     const target = limit === undefined ? undefined : imageRequestTarget(ref, limit)
     if (target !== undefined) {
       try {

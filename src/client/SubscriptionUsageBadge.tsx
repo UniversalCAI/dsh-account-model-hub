@@ -28,7 +28,7 @@ import { createPortal } from 'react-dom'
 import type { PropsLocale, PropsRuntime } from '@deepseek-ai/dsh-client-ui-slots'
 import type { ConnectionHandle } from '@deepseek-ai/dsh-api-remotes/client'
 import * as primitives from '@deepseek-ai/dsh-client-ui-primitives'
-import { useAnchoredPosition, useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
+import { useDismissOnOutsidePointer } from '@deepseek-ai/dsh-client-ui-primitives'
 import { callSubscriptionsAuth, usageBarColor } from './SubscriptionsSection.js'
 import type { AccountStatus, ProviderStatus, ProviderUsage, SubscriptionProvider, UsageWindow } from './SubscriptionsSection.js'
 import type { ModelDirectoriesLike } from './SpeedSelect.js'
@@ -56,8 +56,24 @@ const MODEL_POLL_INTERVAL_MS = 3000
 /** Distance between the trigger's top edge and the dialog's bottom (host stat dialogs use the same). */
 const PANEL_GAP = 8
 
-/** Distance kept between the dialog and each viewport edge. */
-const PANEL_MARGIN = 12
+/** Unique CSS anchor name for the usage trigger. */
+const USAGE_ANCHOR_NAME = '--dsh-account-hub-usage-anchor'
+
+/**
+ * DSH 0.2.2 removed `useAnchoredPosition`; the supported replacement is CSS
+ * Anchor Positioning. The panel is right-aligned to the trigger so it grows
+ * leftwards out of the composer's stats row.
+ */
+const usageAnchorCss = `
+.dsh-subscription-usage-anchor { anchor-name: ${USAGE_ANCHOR_NAME}; }
+.dsh-subscription-usage-panel {
+  position-anchor: ${USAGE_ANCHOR_NAME};
+  right: anchor(right);
+  bottom: anchor(top);
+  margin-bottom: ${PANEL_GAP}px;
+  max-width: min(440px, calc(100vw - 24px));
+}
+`
 
 /** Injected dependencies (slot `inject`, session-bound). */
 export interface SubscriptionUsageBadgeInjected {
@@ -414,7 +430,6 @@ export function SubscriptionUsageBadge({ rpc, currentModel, t }: SubscriptionUsa
     }
   }, [])
 
-  const pos = useAnchoredPosition({ open, anchorRef: rootRef, panelRef, side: 'top', gap: PANEL_GAP, margin: PANEL_MARGIN })
   useDismissOnOutsidePointer(rootRef, open, setOpen, panelRef)
   useEffect(() => {
     if (!open) return
@@ -466,8 +481,8 @@ export function SubscriptionUsageBadge({ rpc, currentModel, t }: SubscriptionUsa
   }
 
   const pill = (
-    <span ref={rootRef} style={styles.anchor}>
-      <style>{subscriptionChromeCss}</style>
+    <span ref={rootRef} className="dsh-subscription-usage-anchor" style={styles.anchor}>
+      <style>{subscriptionChromeCss + usageAnchorCss}</style>
       <button
         type="button"
         className="dsh-subscription-usage-pill"
@@ -489,7 +504,7 @@ export function SubscriptionUsageBadge({ rpc, currentModel, t }: SubscriptionUsa
           role="dialog"
           aria-label={title}
           className="dsh-subscription-usage-panel"
-          style={{ ...styles.panel, ...(pos ?? MEASURE_STYLE) }}
+          style={styles.panel}
         >
           <div style={styles.title}>
             <span style={styles.titleLabel}>
@@ -606,12 +621,6 @@ function WindowRow({ label, window: w }: { label: string; window: UsageWindow })
     </>
   )
 }
-
-/**
- * Unplaced portal panel: hidden but laid out so the clamp measures real
- * dimensions (the `useAnchoredPosition` measure pass).
- */
-const MEASURE_STYLE: CSSProperties = { visibility: 'hidden', left: 0, top: 0 }
 
 const styles: Record<string, CSSProperties> = {
   seat: { display: 'none' },

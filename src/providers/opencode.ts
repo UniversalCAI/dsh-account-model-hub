@@ -499,7 +499,7 @@ export function parseOpencodeUsage(value: unknown): ProviderUsage {
   const usage = (value as { usage?: unknown } | null)?.usage
   const source = (usage ?? value) as Record<string, unknown> | null
   if (source === null || typeof source !== 'object') {
-    throw new LlmError('OpenCode Go usage response is invalid', 'PROVIDER_ERROR')
+    throw new LlmError('OpenCode Go usage response is invalid', 'INVALID_RESPONSE')
   }
   const windows: UsageWindow[] = []
   const rows: readonly [string, UsageWindow['kind'], string | undefined][] = [
@@ -513,7 +513,7 @@ export function parseOpencodeUsage(value: unknown): ProviderUsage {
     if ((row.status !== 'ok' && row.status !== 'rate-limited')
       || typeof row.percent !== 'number' || !Number.isFinite(row.percent)
       || typeof row.resetsAt !== 'string') {
-      throw new LlmError('OpenCode Go usage response is invalid', 'PROVIDER_ERROR')
+      throw new LlmError('OpenCode Go usage response is invalid', 'INVALID_RESPONSE')
     }
     const resetsAt = Date.parse(row.resetsAt)
     windows.push({
@@ -523,7 +523,7 @@ export function parseOpencodeUsage(value: unknown): ProviderUsage {
       ...Number.isFinite(resetsAt) ? { resetsAt } : {},
     })
   }
-  if (windows.length === 0) throw new LlmError('OpenCode Go usage response is invalid', 'PROVIDER_ERROR')
+  if (windows.length === 0) throw new LlmError('OpenCode Go usage response is invalid', 'INVALID_RESPONSE')
   return { supported: true, windows }
 }
 
@@ -548,7 +548,7 @@ export async function fetchOpencodeUsage(
   try {
     body = await response.json()
   } catch {
-    throw new LlmError('OpenCode Go usage response is invalid', 'PROVIDER_ERROR')
+    throw new LlmError('OpenCode Go usage response is invalid', 'INVALID_RESPONSE')
   }
   return parseOpencodeUsage(body)
 }

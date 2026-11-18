@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+## 0.3.4 — 2026-11-17
+
+### Compatibility
+
+- Updated DSH peer/development dependencies for `0.2.2-rc.3`.
+- Migrated the usage badge from the removed `useAnchoredPosition` hook to CSS Anchor Positioning.
+- Migrated custom LLM failure codes to `LlmError.fromFailure` / built-in error codes under the stricter DSH constructor.
+- Adapted tests to the current AgentRegistry and failure-code APIs.
+
 ## 0.3.3 — 2026-11-06
 
 ### Compatibility

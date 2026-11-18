@@ -270,7 +270,7 @@ test('resolveImages: passthrough, loud failure without attachments, and resoluti
   } as never])]
   await assert.rejects(
     () => resolveImages(withImage, undefined),
-    (error: unknown) => error instanceof LlmError && error.code === 'UNSUPPORTED',
+    (error: unknown) => error instanceof LlmError && error.code === 'UNSUPPORTED_CONTENT',
   )
 
   const attachments = {
@@ -319,7 +319,7 @@ test('tool-result images: resolve attachments and retain parallel results before
   const chat = toChatMessages(resolved)
   assert.deepEqual(chat.map(item => item.role), ['assistant', 'tool', 'tool', 'user'])
   assert.equal((chat[3].content as Record<string, unknown>[]).filter(part => part.type === 'image_url').length, 2)
-  await assert.rejects(() => resolveImages(messages, undefined), (error: unknown) => error instanceof LlmError && error.code === 'UNSUPPORTED')
+  await assert.rejects(() => resolveImages(messages, undefined), (error: unknown) => error instanceof LlmError && error.code === 'UNSUPPORTED_CONTENT')
   await assert.rejects(() => resolveImages(messages, { readImage: async () => { throw new Error('read failed') } } as never), /read failed/)
 })
 

@@ -151,7 +151,9 @@ export async function httpLlmError(
   if (reset === undefined && rateLimited) {
     options.onWarn?.(`${label}: ${rateLimitDiagnostics(response, body)}`)
   }
-  return new LlmError(message, code, {
+  return LlmError.fromFailure({
+    message,
+    code,
     status: response.status,
     ...reset === undefined ? {} : { providerRetryAfterMs: waitFromReset(reset, now) },
   })

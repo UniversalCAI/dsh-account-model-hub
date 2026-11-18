@@ -9,6 +9,10 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { LlmError } from '@deepseek-ai/dsh-llm'
+
+function failure(message: string, code: string, options?: { providerRetryAfterMs?: number }): LlmError {
+  return LlmError.fromFailure({ message, code, ...options })
+}
 import {
   accountKey,
   AUTH_COOLDOWN_MS,
@@ -20,13 +24,13 @@ import {
 } from '../src/providers/pool-health.js'
 
 test('classifyPoolFailure: quota and rate-limit cool the whole account (account-level quota)', () => {
-  assert.deepEqual(classifyPoolFailure(new LlmError('quota', 'QUOTA'), 'codex'), {
+  assert.deepEqual(classifyPoolFailure(failure('quota', 'QUOTA'), 'codex'), {
     action: 'switch',
     cooldownMs: DEFAULT_QUOTA_COOLDOWN_MS,
     reason: 'QUOTA',
     scope: 'account',
   })
-  assert.deepEqual(classifyPoolFailure(new LlmError('limited', 'RATE_LIMIT'), 'grok'), {
+  assert.deepEqual(classifyPoolFailure(failure('limited', 'RATE_LIMIT'), 'grok'), {
     action: 'switch',
     cooldownMs: DEFAULT_QUOTA_COOLDOWN_MS,
     reason: 'RATE_LIMIT',
@@ -35,7 +39,7 @@ test('classifyPoolFailure: quota and rate-limit cool the whole account (account-
 })
 
 test('classifyPoolFailure: claude quota failures stay member-scoped (per-model lanes)', () => {
-  assert.deepEqual(classifyPoolFailure(new LlmError('quota', 'QUOTA'), 'claude'), {
+  assert.deepEqual(classifyPoolFailure(failure('quota', 'QUOTA'), 'claude'), {
     action: 'switch',
     cooldownMs: DEFAULT_QUOTA_COOLDOWN_MS,
     reason: 'QUOTA',
@@ -45,7 +49,7 @@ test('classifyPoolFailure: claude quota failures stay member-scoped (per-model l
 
 test('classifyPoolFailure: an Antigravity quota parks only the exhausted model', () => {
   // One model's 35-hour quota reset must not park the account's other models.
-  const error = new LlmError('quota', 'RATE_LIMIT', { providerRetryAfterMs: 35 * 3_600_000 })
+  const error = failure('quota', 'RATE_LIMIT', { providerRetryAfterMs: 35 * 3_600_000 })
   assert.deepEqual(classifyPoolFailure(error, 'antigravity'), {
     action: 'switch',
     cooldownMs: 35 * 3_600_000,
@@ -55,7 +59,7 @@ test('classifyPoolFailure: an Antigravity quota parks only the exhausted model',
 })
 
 test('classifyPoolFailure: the provider retry-after wins over the default cooldown', () => {
-  const error = new LlmError('slow down', 'RATE_LIMIT', { providerRetryAfterMs: 42_000 })
+  const error = failure('slow down', 'RATE_LIMIT', { providerRetryAfterMs: 42_000 })
   assert.deepEqual(classifyPoolFailure(error, 'codex'), {
     action: 'switch',
     cooldownMs: 42_000,
@@ -66,7 +70,7 @@ test('classifyPoolFailure: the provider retry-after wins over the default cooldo
 
 test('classifyPoolFailure: auth failures park the account until re-login', () => {
   for (const code of ['AUTH', 'INVALID_CREDENTIAL', 'MISSING_CREDENTIAL']) {
-    assert.deepEqual(classifyPoolFailure(new LlmError('denied', code), 'claude'), {
+    assert.deepEqual(classifyPoolFailure(failure('denied', code), 'claude'), {
       action: 'switch',
       cooldownMs: AUTH_COOLDOWN_MS,
       reason: code,
@@ -77,7 +81,7 @@ test('classifyPoolFailure: auth failures park the account until re-login', () =>
 
 test('classifyPoolFailure: transient server failures cool the member briefly', () => {
   for (const code of ['SERVER', 'TIMEOUT', 'EMPTY_RESPONSE']) {
-    assert.deepEqual(classifyPoolFailure(new LlmError('oops', code), 'codex'), {
+    assert.deepEqual(classifyPoolFailure(failure('oops', code), 'codex'), {
       action: 'switch',
       cooldownMs: TRANSIENT_COOLDOWN_MS,
       reason: code,
@@ -92,22 +96,22 @@ test('classifyPoolFailure: backend load shedding switches without parking the me
     ['slow_down: Selected model is at capacity. Please try a different model.', 'SERVER'],
     ['codex API error (HTTP 429): {"error":{"code":"server_is_overloaded"}}', 'RATE_LIMIT'],
   ] as const) {
-    assert.deepEqual(classifyPoolFailure(new LlmError(message, code), 'codex'), { action: 'switch' })
+    assert.deepEqual(classifyPoolFailure(failure(message, code), 'codex'), { action: 'switch' })
   }
   // A disclosed wait stays authoritative even for overload wording.
   assert.deepEqual(
-    classifyPoolFailure(new LlmError('server_is_overloaded', 'SERVER', { providerRetryAfterMs: 5_000 }), 'codex'),
+    classifyPoolFailure(failure('server_is_overloaded', 'SERVER', { providerRetryAfterMs: 5_000 }), 'codex'),
     { action: 'switch', cooldownMs: TRANSIENT_COOLDOWN_MS, reason: 'SERVER', scope: 'member' },
   )
 })
 
 test('classifyPoolFailure: transport failures switch without a health record', () => {
-  assert.deepEqual(classifyPoolFailure(new LlmError('dns', 'TRANSPORT'), 'codex'), { action: 'switch' })
+  assert.deepEqual(classifyPoolFailure(failure('dns', 'TRANSPORT'), 'codex'), { action: 'switch' })
 })
 
 test('classifyPoolFailure: plan/model availability switches the member', () => {
   for (const code of ['HTTP_402', 'HTTP_404']) {
-    assert.deepEqual(classifyPoolFailure(new LlmError('unavailable', code), 'codex'), {
+    assert.deepEqual(classifyPoolFailure(failure('unavailable', code), 'codex'), {
       action: 'switch',
       cooldownMs: TRANSIENT_COOLDOWN_MS,
       reason: code,
@@ -118,7 +122,7 @@ test('classifyPoolFailure: plan/model availability switches the member', () => {
 
 test('classifyPoolFailure: request-fault and unknown failures rethrow', () => {
   for (const code of ['CONTEXT_WINDOW_EXCEEDED', 'ABORTED', 'HTTP_400']) {
-    assert.deepEqual(classifyPoolFailure(new LlmError('bad request', code), 'codex'), { action: 'throw' })
+    assert.deepEqual(classifyPoolFailure(failure('bad request', code), 'codex'), { action: 'throw' })
   }
   assert.deepEqual(classifyPoolFailure(new Error('plain'), 'codex'), { action: 'throw' })
   assert.deepEqual(classifyPoolFailure('string failure', 'codex'), { action: 'throw' })
