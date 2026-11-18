@@ -115,11 +115,11 @@ Image generation and editing share same-provider account scheduling: try the def
 
 ### DSH compatibility
 
-Version `0.9.7` added support for DSH `0.2.0-rc.2`; DSH `0.2.1-alpha.2`, `0.2.1-alpha.3` and `0.2.1-rc.2` are supported as well, with development dependencies pinned to `0.2.1-rc.2`. It handles request-only messages, first-class tool results, preparing tool views, and offloaded image placeholders while retaining legacy history translation. `0.2.1-rc.2` additionally requires tool arguments on every call head and takes the web runtime's provider overrides as `Volatile` refs. Other `0.2` prereleases are not implicitly allowed.
+This `0.3.4` release supports DSH `0.2.2-rc.1`, `0.2.2-rc.2`, and `0.2.2-rc.3`; development dependencies are pinned to `0.2.2-rc.3`. The build and full test suite (`657` tests) are run against that release.
 
-In DSH `0.2.1-rc.2`, the load-time check uses `engines.dsh` when declared; otherwise, every `@deepseek-ai/dsh` and `@deepseek-ai/dsh-*` peer must match the running DSH version. Prereleases participate in this check. This plugin does not declare `engines.dsh`, so its DSH peer ranges determine whether it can load. The `@deepseek-ai/cordis` and `@deepseek-ai/schemastery` peers affect package-manager dependency resolution, not this load-time check. They keep their `^4.0.1` / `^3.18.1` floors and also list the `4.0.5-alpha` / `3.18.5-alpha` builds bundled with DSH `0.2.1-alpha.2` and `0.2.1-alpha.3`, because those caret ranges exclude these prereleases under npm's default semver rules.
+The package intentionally does not declare `engines.dsh`. DSH therefore uses the plugin's `@deepseek-ai/dsh` and `@deepseek-ai/dsh-*` peer ranges as its load-time compatibility check; prereleases participate in that check. The `@deepseek-ai/cordis` and `@deepseek-ai/schemastery` peers cover package-manager resolution as well. If you upgrade DSH outside the supported ranges, update the peer and development dependency ranges, rebuild, and rerun the tests; do not bypass the compatibility check.
 
-The current release supports the published DSH `0.1.1-rc.2`, `0.1.2-alpha`/`rc`, `0.1.3-alpha`, `0.1.5-alpha`/`rc`, and `0.1.7-rc` lines, including `0.1.5-rc.2` and `0.1.7-rc.2`. The `0.1.5-alpha.1` peer-range anchor intentionally covers the later `0.1.5-alpha`, `0.1.5-rc`, and stable `0.1.5` builds under npm semver rules; the `0.1.7-rc.1` anchor likewise covers the later `0.1.7-rc` and stable `0.1.7` builds. DSH `0.1.6-alpha` and `0.1.7-alpha` are not included until they have been separately verified.
+The retained `0.2.1` and older peer ranges document versions this fork has been built against, but the current verified target is `0.2.2-rc.3`. For a complete takeover checklist, see [AGENT-HANDOFF.md](AGENT-HANDOFF.md).
 
 ### Managing accounts and pool models
 
@@ -137,32 +137,31 @@ Claude requests present themselves as Claude Code, and the endpoint gates newer 
 
 ### Installation commands
 
-With the `dsh` CLI available, install from npm (prebuilt artifacts, no build permission needed):
+This repository is source-first and is **not currently published to npm**. The supported install paths are the self-hosted market index and GitHub source installs.
 
-```sh
-dsh plugin --profile desktop add "link:<this checkout>"
-```
-
-Or install the sources from GitHub:
+From GitHub:
 
 ```sh
 dsh plugin --profile web add github:UniversalCAI/dsh-account-model-hub
 ```
 
-pnpm will ask you to allow this package's build script on first install (git installs fetch sources, not built artifacts); add the printed key to the profile's `pnpm-workspace.yaml`:
+Git installs fetch sources, not built artifacts. pnpm runs the package's `prepare` script during install; if it asks for build-script approval, add the printed key to the profile's `pnpm-workspace.yaml` and re-run the `add`:
 
 ```yaml
 allowBuilds:
   dsh-account-model-hub: true
 ```
 
-and re-run the `add`. Only grant this to packages you trust — it runs the package's code at install time.
+Only grant this to a source you trust — it runs the package's code at install time.
 
-From a local checkout instead:
+From a local checkout:
 
 ```sh
 git clone https://github.com/UniversalCAI/dsh-account-model-hub.git
-cd dsh-account-model-hub && pnpm install && pnpm build
+cd dsh-account-model-hub
+pnpm install        # prepare builds lib/index.js and lib/client.js
+pnpm build
+pnpm test --test-concurrency=1
 dsh plugin --profile web add ./dsh-account-model-hub
 ```
 
@@ -173,17 +172,15 @@ cp overlay.example.yml overlay.yml   # then edit the name: to this checkout's ab
 dsh --profile headless --patch <checkout>/overlay.yml "your task"
 ```
 
+The clean-clone path has been verified: `pnpm install` produces `lib/index.js` and `lib/client.js`, and `pnpm test` passes all `657` tests.
+
+For an agent takeover, follow [AGENT-HANDOFF.md](AGENT-HANDOFF.md). Account OAuth/device-code/API-key setup always requires the human account owner.
+
 ## Update
 
-Installed from npm:
+Installed from GitHub: re-run the same `add github:UniversalCAI/dsh-account-model-hub` command — it re-fetches the sources and rebuilds. A linked local checkout needs `git pull && pnpm install && pnpm build`.
 
-```sh
-dsh plugin --profile web update --latest dsh-account-model-hub
-```
-
-Installed from GitHub: re-run the same `add github:UniversalCAI/dsh-account-model-hub` command — it re-fetches the sources and rebuilds. A linked local checkout just needs `git pull && pnpm build` in the checkout.
-
-Either way, restart `dsh web` afterwards so the new version loads.
+Restart `dsh web` afterwards so the new version loads.
 
 ## Use
 

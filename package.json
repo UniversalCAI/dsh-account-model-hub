@@ -45,7 +45,8 @@
     "ARCHITECTURE.md",
     "RELEASE-CHECKLIST.md",
     "CHANGELOG.md",
-    "PUBLISHING.md"
+    "PUBLISHING.md",
+    "AGENT-HANDOFF.md"
   ],
   "dsh": {
     "bundle": {

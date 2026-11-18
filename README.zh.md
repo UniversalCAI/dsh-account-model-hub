@@ -87,11 +87,11 @@ Codex 编辑走 `/backend-api/codex/images/edits`，Grok 编辑走 `/v1/images/e
 
 ### DSH 兼容性
 
-`0.9.7` 版本新增对 DSH `0.2.0-rc.2` 的支持；DSH `0.2.1-alpha.2`、`0.2.1-alpha.3` 和 `0.2.1-rc.2` 同样受支持，开发依赖固定到 `0.2.1-rc.2`。适配请求态消息、独立工具结果、工具准备状态和已省略图片的文本占位，同时保留旧历史格式转换。`0.2.1-rc.2` 还要求每个工具调用头都带上参数，且 Web 运行时的 provider 覆盖改为 `Volatile` 引用。不会自动放行其他 `0.2` 预发布版本。
+当前 `0.3.4` 版本支持 DSH `0.2.2-rc.1`、`0.2.2-rc.2`、`0.2.2-rc.3`；开发依赖固定到 `0.2.2-rc.3`，并在该版本上完成构建和完整测试（`657` 项）。
 
-DSH `0.2.1-rc.2` 加载时优先使用已声明的 `engines.dsh`；未声明时，要求所有 `@deepseek-ai/dsh` 和 `@deepseek-ai/dsh-*` peer 范围均匹配当前 DSH 版本，预发布版本也参与匹配。本插件未声明 `engines.dsh`，因此由 DSH peer 范围决定是否允许加载。`@deepseek-ai/cordis` 与 `@deepseek-ai/schemastery` 的 peer 影响包管理器的依赖解析，不参与这项加载检查；它们保留 `^4.0.1` / `^3.18.1` 下限，并额外列出 DSH `0.2.1-alpha.2`、`0.2.1-alpha.3` 自带的 `4.0.5-alpha` / `3.18.5-alpha` 版本，因为这些脱字符范围按 npm 默认的 semver 规则不包含上述预发布版本。
+本包故意不声明 `engines.dsh`，因此 DSH 会使用插件的 `@deepseek-ai/dsh` 与 `@deepseek-ai/dsh-*` peer 范围作为加载时的兼容检查，预发布版本也参与匹配。`@deepseek-ai/cordis` 与 `@deepseek-ai/schemastery` 的 peer 同时覆盖包管理器解析。如果升级到支持范围外的 DSH，请更新 peer 与开发依赖、重新构建并运行测试，不要绕过兼容检查。
 
-当前版本支持已发布的 DSH `0.1.1-rc.2`、`0.1.2-alpha`/`rc`、`0.1.3-alpha`、`0.1.5-alpha`/`rc` 和 `0.1.7-rc` 版本线，包括 `0.1.5-rc.2` 和 `0.1.7-rc.2`。peer 范围使用 `0.1.5-alpha.1` 作为锚点，按照 npm semver 规则也覆盖之后的 `0.1.5-alpha`、`0.1.5-rc` 和稳定版 `0.1.5`；`0.1.7-rc.1` 锚点同样覆盖之后的 `0.1.7-rc` 和稳定版 `0.1.7`。DSH `0.1.6-alpha` 和 `0.1.7-alpha` 尚未单独验证，因此暂不纳入支持范围。
+保留的 `0.2.1` 及更早 peer 范围用于记录已经构建过的版本，但当前验证目标是 `0.2.2-rc.3`。完整的接手清单见 [AGENT-HANDOFF.md](AGENT-HANDOFF.md)。
 
 ### 管理账号与 Pool 模型
 
@@ -109,53 +109,50 @@ Claude 请求以 Claude Code 的身份发出，接口会按 Claude Code 版本�
 
 ### 安装命令
 
-本机已有 `dsh` CLI 时,从 npm 安装(预构建产物,无需构建授权):
+本仓库以源码为主，**当前没有发布到 npm**。支持的安装路径是自托管市场索引和 GitHub 源码安装。
 
-```sh
-dsh plugin --profile web add dsh-account-model-hub
-```
-
-也可以从 GitHub 安装源码:
+从 GitHub 安装：
 
 ```sh
 dsh plugin --profile web add github:UniversalCAI/dsh-account-model-hub
 ```
 
-首次安装 pnpm 会要求允许该包的构建脚本(git 安装拉取的是源码而非构建产物);把打印出的包名加进 profile 的 `pnpm-workspace.yaml`:
+git 安装拉取的是源码，不是构建产物。pnpm 会执行包的 `prepare` 脚本；如果请求构建脚本授权，把打印出的包名加入 profile 的 `pnpm-workspace.yaml`，然后重新执行 `add`：
 
 ```yaml
 allowBuilds:
   dsh-account-model-hub: true
 ```
 
-然后重新执行 `add`。该授权会在安装时执行包的代码,只授给你信任的来源。
+该授权会在安装时执行包的代码，只授给你信任的来源。
 
-本地检出安装:
+本地检出安装：
 
 ```sh
 git clone https://github.com/UniversalCAI/dsh-account-model-hub.git
-cd dsh-account-model-hub && pnpm install && pnpm build
+cd dsh-account-model-hub
+pnpm install        # prepare 会构建 lib/index.js 与 lib/client.js
+pnpm build
+pnpm test --test-concurrency=1
 dsh plugin --profile web add ./dsh-account-model-hub
 ```
 
-不装进 profile 的 headless 用法(先在 web 界面登录过 —— token 文件是共享的):
+不装进 profile 的 headless 用法（先在 Web 界面登录过，token 文件是共享的）：
 
 ```sh
 cp overlay.example.yml overlay.yml   # 然后把 name: 改成本检出的 lib/index.js 绝对路径
 dsh --profile headless --patch <检出目录>/overlay.yml "你的任务"
 ```
 
+干净克隆路径已验证：`pnpm install` 会产出 `lib/index.js` 和 `lib/client.js`，`pnpm test` 的 `657` 项测试全部通过。
+
+agent 接手请按 [AGENT-HANDOFF.md](AGENT-HANDOFF.md) 执行。账号 OAuth、设备码和 API Key 配置始终需要账号所有者本人操作，agent 不能代填凭据。
+
 ## 更新
 
-npm 安装的:
+GitHub 安装的：重新执行一遍 `add github:UniversalCAI/dsh-account-model-hub` —— 会重新拉取源码并构建。本地 link 的检出只需在目录里执行 `git pull && pnpm install && pnpm build`。
 
-```sh
-dsh plugin --profile web update --latest dsh-account-model-hub
-```
-
-GitHub 安装的:重新执行一遍 `add github:UniversalCAI/dsh-account-model-hub` —— 会重新拉取源码并构建。link 的本地检出只需在检出目录里 `git pull && pnpm build`。
-
-无论哪种方式,更新后都要重启 `dsh web` 才会加载新版本。
+更新后需要重启 `dsh web` 才会加载新版本。
 
 ## 使用
 
