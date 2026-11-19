@@ -1,5 +1,13 @@
 ﻿# Changelog
 
+## 0.3.5 — 2026-11-18
+
+### Compatibility
+
+- Updated peer/development dependency ranges for DSH `0.2.2-rc.4` and `0.2.2-rc.5`.
+- Verified build and the full 657-test suite against DSH `0.2.2-rc.5`.
+- No source-level API changes were required beyond the dependency range update.
+
 ## 0.3.4 — 2026-11-17
 
 ### Compatibility

@@ -87,11 +87,11 @@ Codex 编辑走 `/backend-api/codex/images/edits`，Grok 编辑走 `/v1/images/e
 
 ### DSH 兼容性
 
-当前 `0.3.4` 版本支持 DSH `0.2.2-rc.1`、`0.2.2-rc.2`、`0.2.2-rc.3`；开发依赖固定到 `0.2.2-rc.3`，并在该版本上完成构建和完整测试（`657` 项）。
+当前 `0.3.5` 版本支持 DSH `0.2.2-rc.1` 至 `0.2.2-rc.5`；开发依赖固定到 `0.2.2-rc.5`，并在该版本上完成构建和完整测试（`657` 项）。
 
 本包故意不声明 `engines.dsh`，因此 DSH 会使用插件的 `@deepseek-ai/dsh` 与 `@deepseek-ai/dsh-*` peer 范围作为加载时的兼容检查，预发布版本也参与匹配。`@deepseek-ai/cordis` 与 `@deepseek-ai/schemastery` 的 peer 同时覆盖包管理器解析。如果升级到支持范围外的 DSH，请更新 peer 与开发依赖、重新构建并运行测试，不要绕过兼容检查。
 
-保留的 `0.2.1` 及更早 peer 范围用于记录已经构建过的版本，但当前验证目标是 `0.2.2-rc.3`。完整的接手清单见 [AGENT-HANDOFF.md](AGENT-HANDOFF.md)。
+保留的 `0.2.1` 及更早 peer 范围用于记录已经构建过的版本，但当前验证目标是 `0.2.2-rc.5`。完整的接手清单见 [AGENT-HANDOFF.md](AGENT-HANDOFF.md)。
 
 ### 管理账号与 Pool 模型
 
