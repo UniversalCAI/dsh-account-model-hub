@@ -77,6 +77,33 @@ test('quotaFor: a stale success still serves cached data while a background refr
   assert.equal(calls.count, 2, 'the stale read triggered exactly one background refresh')
 })
 
+test('quotaFor: an account-level monthly window constrains every model', async () => {
+  const monthlyFull: ProviderUsage = {
+    supported: true,
+    windows: [
+      { kind: 'other', scope: 'monthly', usedPercent: 100 },
+      { kind: 'session', usedPercent: 0 },
+      { kind: 'weekly', usedPercent: 14 },
+    ],
+  }
+  const { tracker } = trackerOf(() => Promise.resolve(monthlyFull))
+  const quota = await tracker.quotaFor(MEMBER)
+  assert.equal(quota.available, false, 'monthly must not be filtered out by a model-name scope check')
+})
+
+test('quotaFor: a model-scoped weekly lane still filters by its model name', async () => {
+  const opusScoped: ProviderUsage = {
+    supported: true,
+    windows: [
+      { kind: 'weekly', scope: 'Opus', usedPercent: 100 },
+      { kind: 'session', usedPercent: 0 },
+    ],
+  }
+  const { tracker } = trackerOf(() => Promise.resolve(opusScoped))
+  assert.equal((await tracker.quotaFor(MEMBER)).available, false)
+  assert.equal((await tracker.quotaFor({ ...MEMBER, model: 'claude-sonnet-5' })).available, true)
+})
+
 test('snapshotFor: a live failure cooldown is never bypassed, even by a forced (manual refresh) call', async () => {
   const error = new OAuthEndpointError('claude usage token endpoint error (HTTP 429)', 429, undefined, 60_000)
   const { tracker, calls } = trackerOf(() => Promise.reject(error))

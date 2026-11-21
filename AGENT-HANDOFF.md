@@ -6,7 +6,7 @@ require the human account owner.
 
 ## 1. Prerequisites
 
-- DSH `0.2.2-rc.1` through `0.2.2-rc.5` for the current `0.3.5` release.
+- DSH `0.2.2-rc.1` through `0.2.2-rc.5` for the current `0.3.6` release.
   Other DSH versions are rejected by the load-time peer check.
 - Node.js 24.9+ (the DSH runtime already provides this).
 - Network access to the DSH profile's package registry and GitHub.
@@ -81,7 +81,7 @@ dsh plugin --profile web list
 Expected state for the current release:
 
 ```text
-dsh-account-model-hub 0.3.5
+dsh-account-model-hub 0.3.6
 enabled
 no incompatible-version or import error
 ```

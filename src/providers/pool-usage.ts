@@ -252,12 +252,16 @@ function cooldownFor(error: unknown, defaultTtlMs: number): number {
 }
 
 /**
- * Whether a window constrains this model: unscoped windows always do; a
+ * Whether a window constrains this model. Unscoped windows always do; a
  * model-scoped window (Claude's Opus/Sonnet lanes) applies when its scope
- * names the model family.
+ * names the model family. OpenCode Go reports its account-level monthly
+ * window as `{ kind: 'other', scope: 'monthly' }`; `monthly` is not a model
+ * name and must apply to every model, or the pool can route to an account
+ * whose monthly quota is already exhausted.
  */
 function windowApplies(window: UsageWindow, model: string): boolean {
   if (window.scope === undefined) return true
+  if (window.kind === 'other' && window.scope.toLowerCase() === 'monthly') return true
   return model.toLowerCase().includes(window.scope.toLowerCase())
 }
 

@@ -1,6 +1,6 @@
 # dsh-account-model-hub (fork of dsh-plugin-subscriptions) [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
 
-> 兼容 DSH `0.2.2-rc.5`；当前插件版本 `0.3.5`。
+> 兼容 DSH `0.2.2-rc.5`；当前插件版本 `0.3.6`。
 
 English | [中文](README.zh.md)
 
@@ -20,7 +20,7 @@ dsh plugin --profile web add github:UniversalCAI/dsh-account-model-hub
 Market index source for the DSH Discover tab:
 
 ```text
-https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.5/market/index.json
+https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.6/market/index.json
 ```
 
 See [PUBLISHING.md](PUBLISHING.md) for the full publishing path (npm is optional for the self-hosted index; the community catalog needs a separate entry).
@@ -115,7 +115,7 @@ Image generation and editing share same-provider account scheduling: try the def
 
 ### DSH compatibility
 
-This `0.3.5` release supports DSH `0.2.2-rc.1` through `0.2.2-rc.5`; development dependencies are pinned to `0.2.2-rc.5`. The build and full test suite (`657` tests) are run against that release.
+This `0.3.6` release supports DSH `0.2.2-rc.1` through `0.2.2-rc.5`; development dependencies are pinned to `0.2.2-rc.5`. The build and full test suite (`657` tests) are run against that release.
 
 The package intentionally does not declare `engines.dsh`. DSH therefore uses the plugin's `@deepseek-ai/dsh` and `@deepseek-ai/dsh-*` peer ranges as its load-time compatibility check; prereleases participate in that check. The `@deepseek-ai/cordis` and `@deepseek-ai/schemastery` peers cover package-manager resolution as well. If you upgrade DSH outside the supported ranges, update the peer and development dependency ranges, rebuild, and rerun the tests; do not bypass the compatibility check.
 
@@ -368,7 +368,7 @@ git tag v0.2.1 && git push github main v0.2.1
 Then update `market/index.json` with the new version and source commit, commit and push it. The index is available from:
 
 ```text
-https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.5/market/index.json
+https://cdn.jsdelivr.net/gh/UniversalCAI/dsh-account-model-hub@v0.3.6/market/index.json
 ```
 
 If you later publish to npm, update the index version's `source` to `{ "type": "npm" }` and keep the package name/version in sync.

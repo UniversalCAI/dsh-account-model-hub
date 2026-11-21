@@ -1,5 +1,12 @@
 ﻿# Changelog
 
+## 0.3.6 — 2026-11-21
+
+### Fixed
+
+- Account-level OpenCode Go monthly quota windows (`kind: other`, `scope: monthly`) are now applied to every model in pool scoring. Previously the model-name scope check dropped them, so an account with a full monthly window could still be selected and return HTTP 429 `GoUsageLimitError (monthly)`.
+- Added regression coverage for monthly account-level windows and model-scoped weekly lanes.
+
 ## 0.3.5 — 2026-11-18
 
 ### Compatibility
